@@ -52,6 +52,7 @@ func initConfig() {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("$HOME") // adding home directory as search path
 	viper.AddConfigPath("/etc/roadrunner/")
+	viper.SetEnvPrefix("roadrunner")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
