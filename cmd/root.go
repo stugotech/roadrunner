@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stugotech/golog"
+	"github.com/stugotech/roadrunner/server"
 )
 
 var cfgFile string
@@ -31,11 +32,11 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	pflags := RootCmd.PersistentFlags()
 	pflags.StringVar(&cfgFile, "config", "", "config file")
-	pflags.StringP("listen", "l", "0.0.0.0:8080", "interface to listen for challenges on")
-	pflags.String("path-prefix", ".well-known/acme-challenge", "first component of URI path to challenges")
-	pflags.String("store", "etcd", "KV store to use [etcd|consul|boltdb|zookeeper]")
-	pflags.StringSlice("store-nodes", []string{"127.0.0.1:2379"}, "comma-seperated list of KV (URI authority only)")
-	pflags.String("store-prefix", "roadrunner", "prefix to use when looking up values in KV store (will look in \"challenges\" sub path)")
+	pflags.StringP(server.ListenKey, "l", "0.0.0.0:8080", "interface to listen for challenges on")
+	pflags.String(server.PathPrefixKey, ".well-known/acme-challenge", "first component of URI path to challenges")
+	pflags.String(server.StoreKey, "etcd", "KV store to use [etcd|consul|boltdb|zookeeper]")
+	pflags.StringSlice(server.StoreNodesKey, []string{"127.0.0.1:2379"}, "comma-seperated list of KV (URI authority only)")
+	pflags.String(server.StorePrefixKey, "roadrunner", "prefix to use when looking up values in KV store (will look in \"challenges\" sub path)")
 
 	// load all flags into viper
 	viper.BindPFlags(pflags)

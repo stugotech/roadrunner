@@ -24,6 +24,15 @@ const (
 	pathRegexp = "^/%s/([a-zA-Z0-9_-]+)$"
 )
 
+// The following consts define config keys for this module
+const (
+	ListenKey      = "listen"
+	StoreKey       = "store"
+	StoreNodesKey  = "store-nodes"
+	StorePrefixKey = "store-prefix"
+	PathPrefixKey  = "path-prefix"
+)
+
 // Config describes the configuration settings for the server
 type Config struct {
 	Store       string
@@ -51,11 +60,11 @@ var logger = golog.NewPackageLogger()
 // ReadConfig reads a configuration from a config provider
 func ReadConfig(config goconfig.Config) *Config {
 	return &Config{
-		Store:       config.GetString("store"),
-		StoreNodes:  config.GetStringSlice("store-nodes"),
-		StorePrefix: config.GetString("store-prefix"),
-		Listen:      config.GetString("listen"),
-		PathPrefix:  config.GetString("path-prefix"),
+		Store:       config.GetString(StoreKey),
+		StoreNodes:  config.GetStringSlice(StoreNodesKey),
+		StorePrefix: config.GetString(StorePrefixKey),
+		Listen:      config.GetString(ListenKey),
+		PathPrefix:  config.GetString(PathPrefixKey),
 	}
 }
 
