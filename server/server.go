@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/docker/libkv/store"
 	"github.com/stugotech/coyote/store"
 	"github.com/stugotech/goconfig"
 	"github.com/stugotech/golog"
