@@ -2,19 +2,14 @@ package server
 
 import (
 	"fmt"
-	"path"
 
 	"net/http"
 
 	"regexp"
 	"strings"
 
-	"github.com/docker/libkv"
 	"github.com/docker/libkv/store"
-	"github.com/docker/libkv/store/boltdb"
-	"github.com/docker/libkv/store/consul"
-	"github.com/docker/libkv/store/etcd"
-	"github.com/docker/libkv/store/zookeeper"
+	"github.com/stugotech/coyote/store"
 	"github.com/stugotech/goconfig"
 	"github.com/stugotech/golog"
 )
@@ -70,11 +65,6 @@ func ReadConfig(config goconfig.Config) *Config {
 
 // NewServer creates a new server
 func NewServer(config *Config) (Server, error) {
-	etcd.Register()
-	consul.Register()
-	boltdb.Register()
-	zookeeper.Register()
-
 	logger.Info("creating new server",
 		golog.String("store", config.Store),
 		golog.Strings("store-nodes", config.StoreNodes),
@@ -83,9 +73,7 @@ func NewServer(config *Config) (Server, error) {
 		golog.String("path-prefix", config.PathPrefix),
 	)
 
-	storeConfig := &store.Config{}
-	s, err := libkv.NewStore(store.Backend(config.Store), config.StoreNodes, storeConfig)
-
+	store, err := store.NewStore(config.Store, config.StoreNodes, config.StorePrefix)
 	if err != nil {
 		return nil, logger.Errore(err)
 	}
@@ -95,7 +83,7 @@ func NewServer(config *Config) (Server, error) {
 
 	return &serverInfo{
 		config:    config,
-		store:     s,
+		store:     store,
 		validPath: validPath,
 	}, nil
 }
@@ -122,7 +110,7 @@ func challengeHandler(s *serverInfo, response http.ResponseWriter, request *http
 	}
 
 	key := match[1]
-	value, err := s.getValue(key)
+	challenge, err := s.store.GetChallenge(key)
 
 	if err != nil {
 		logger.Error("error getting value", golog.String("url", request.URL.Path), golog.String("key", key))
@@ -131,9 +119,9 @@ func challengeHandler(s *serverInfo, response http.ResponseWriter, request *http
 		return
 	}
 
-	response.Write(value)
+	response.Write([]byte(challenge.Value))
 
-	if err = s.deleteKey(key); err != nil {
+	if err = s.store.DeleteChallenge(key); err != nil {
 		logger.Error("error deleting key", golog.String("key", key))
 		logger.Errore(err)
 	}
@@ -143,32 +131,4 @@ func (s *serverInfo) makeHandler(fn serverInfoHandler) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		fn(s, response, request)
 	}
-}
-
-func (s *serverInfo) getValue(key string) ([]byte, error) {
-	key = s.getKeyName(key)
-	logger.Debug("looking up KV store for value", golog.String("key", key))
-	kv, err := s.store.Get(key)
-
-	if err != nil {
-		return nil, logger.Errore(err)
-	}
-
-	return kv.Value, nil
-}
-
-func (s *serverInfo) deleteKey(key string) error {
-	key = s.getKeyName(key)
-	logger.Debug("deleting key from KV store", golog.String("key", key))
-	err := s.store.Delete(key)
-
-	if err != nil {
-		return logger.Errore(err)
-	}
-
-	return nil
-}
-
-func (s *serverInfo) getKeyName(key string) string {
-	return path.Join(s.config.StorePrefix, kvPrefix, key)
 }

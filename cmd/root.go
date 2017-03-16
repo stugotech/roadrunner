@@ -36,7 +36,7 @@ func init() {
 	pflags.String(server.PathPrefixKey, ".well-known/acme-challenge", "first component of URI path to challenges")
 	pflags.String(server.StoreKey, "etcd", "KV store to use [etcd|consul|boltdb|zookeeper]")
 	pflags.StringSlice(server.StoreNodesKey, []string{"127.0.0.1:2379"}, "comma-seperated list of KV (URI authority only)")
-	pflags.String(server.StorePrefixKey, "roadrunner", "prefix to use when looking up values in KV store (will look in \"challenges\" sub path)")
+	pflags.String(server.StorePrefixKey, "coyote", "prefix to use when looking up values in KV store (will look in \"challenges\" sub path)")
 
 	// load all flags into viper
 	viper.BindPFlags(pflags)
